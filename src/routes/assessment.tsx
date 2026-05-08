@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { deriveSegment, derivePain, SEGMENT_CONTENT } from "@/lib/segments";
 
 export const Route = createFileRoute("/assessment")({
   head: () => ({
@@ -44,6 +45,7 @@ const questions = [
 ];
 
 function AssessmentPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([null, null, null]);
   const done = step >= questions.length;
@@ -54,7 +56,11 @@ function AssessmentPage() {
     setAnswers(next);
   };
 
-  if (done) return <Result />;
+  if (done) {
+    const segment = deriveSegment(answers[0] ?? 1);
+    const pain = derivePain(answers[1] ?? 0);
+    return <Result segment={segment} pain={pain} onRetake={() => { setAnswers([null, null, null]); setStep(0); }} onContinue={() => navigate({ to: "/enroll", search: { segment, pain } })} />;
+  }
 
   const q = questions[step];
   const selected = answers[step];
@@ -125,27 +131,38 @@ function AssessmentPage() {
   );
 }
 
-function Result() {
+function Result({
+  segment,
+  pain,
+  onRetake,
+  onContinue,
+}: {
+  segment: keyof typeof SEGMENT_CONTENT;
+  pain: string;
+  onRetake: () => void;
+  onContinue: () => void;
+}) {
+  const c = SEGMENT_CONTENT[segment];
   return (
     <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6 py-20 text-center">
       <span className="inline-block bg-[var(--gold-tint)] border border-[var(--gold)] rounded-full px-4 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase text-[var(--alert)] mb-5">
-        Your Personalized Estimate
+        {c.eyebrow}
       </span>
       <h1 className="font-display italic font-thin text-[40px] sm:text-[54px] leading-[1.1] max-w-xl mb-4">
-        Your estimated year-1 savings potential
+        Your year-1 savings potential
       </h1>
       <p className="text-[var(--muted-foreground)] max-w-md mb-8">
-        Based on your stage and CPA-documented strategies in your key modules.
+        Based on your stage and the CPA-documented strategies most relevant to you.
       </p>
 
       <div className="bg-[var(--navy)] rounded-lg px-10 py-7 mb-8 max-w-sm w-full">
         <p className="text-[10px] tracking-[0.14em] uppercase text-white/40 mb-1">Estimated savings</p>
-        <p className="font-display font-light text-[56px] text-[var(--gold)] leading-none">$20,000+</p>
+        <p className="font-display font-light text-[56px] text-[var(--gold)] leading-none">{c.estimate}</p>
         <p className="text-[12px] text-white/40 mt-2">In the first 12 months.</p>
       </div>
 
       <div className="flex flex-wrap gap-3 justify-center mb-10 max-w-md">
-        {["Entity Structure", "Tax Planning", "Pay Yourself", "Asset Protection"].map((t) => (
+        {c.focusModules.map((t) => (
           <span key={t} className="bg-[var(--surface)] rounded text-[13px] px-3.5 py-1.5 text-[var(--navy)] font-medium">
             {t}
           </span>
@@ -153,11 +170,12 @@ function Result() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <Link to="/enroll" className="btn-primary hover:btn-primary-hover">See Everything Inside →</Link>
-        <Link to="/course" className="inline-flex items-center justify-center px-6 py-4 text-[14px] font-semibold tracking-[0.06em] uppercase text-[var(--navy)] border border-[var(--navy)]/20 rounded-md hover:bg-white">
-          View Curriculum
-        </Link>
+        <button onClick={onContinue} className="btn-primary hover:btn-primary-hover">See Your Personalized Plan →</button>
+        <button onClick={onRetake} className="inline-flex items-center justify-center px-6 py-4 text-[14px] font-semibold tracking-[0.06em] uppercase text-[var(--navy)] border border-[var(--navy)]/20 rounded-md hover:bg-white">
+          Retake Quiz
+        </button>
       </div>
+      <p className="sr-only">Top focus: {pain}</p>
     </section>
   );
 }
