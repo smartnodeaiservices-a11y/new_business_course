@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { deriveSegment, derivePain, SEGMENT_CONTENT } from "@/lib/segments";
 
 export const Route = createFileRoute("/assessment")({
   head: () => ({
