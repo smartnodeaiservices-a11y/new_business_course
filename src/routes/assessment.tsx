@@ -45,6 +45,7 @@ const questions = [
 ];
 
 function AssessmentPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([null, null, null]);
   const done = step >= questions.length;
@@ -55,7 +56,11 @@ function AssessmentPage() {
     setAnswers(next);
   };
 
-  if (done) return <Result />;
+  if (done) {
+    const segment = deriveSegment(answers[0] ?? 1);
+    const pain = derivePain(answers[1] ?? 0);
+    return <Result segment={segment} pain={pain} onRetake={() => { setAnswers([null, null, null]); setStep(0); }} onContinue={() => navigate({ to: "/enroll", search: { segment, pain } })} />;
+  }
 
   const q = questions[step];
   const selected = answers[step];
