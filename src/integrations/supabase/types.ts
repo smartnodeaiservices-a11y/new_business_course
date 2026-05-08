@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leads: {
+        Row: {
+          created_at: string
+          email: string
+          estimate: number | null
+          ghl_synced_at: string | null
+          id: string
+          name: string | null
+          paid_at: string | null
+          pain: string | null
+          phone: string | null
+          segment: string | null
+          smartlead_synced_at: string | null
+          status: string
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          estimate?: number | null
+          ghl_synced_at?: string | null
+          id?: string
+          name?: string | null
+          paid_at?: string | null
+          pain?: string | null
+          phone?: string | null
+          segment?: string | null
+          smartlead_synced_at?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          estimate?: number | null
+          ghl_synced_at?: string | null
+          id?: string
+          name?: string | null
+          paid_at?: string | null
+          pain?: string | null
+          phone?: string | null
+          segment?: string | null
+          smartlead_synced_at?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
