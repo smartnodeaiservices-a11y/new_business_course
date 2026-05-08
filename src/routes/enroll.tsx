@@ -157,7 +157,10 @@ function EnrollPage() {
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
-                <button type="submit" className="btn-navy w-full">
+                {error && (
+                  <p className="text-[13px] text-[var(--destructive,#c0392b)] text-center">{error}</p>
+                )}
+                <button type="submit" disabled={submitting} className="btn-navy w-full disabled:opacity-60">
                   Enroll Now — $149 One-Time
                 </button>
                 <p className="text-[12px] text-[var(--muted-foreground)] text-center mt-3 leading-relaxed">
