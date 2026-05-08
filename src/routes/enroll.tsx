@@ -27,14 +27,41 @@ function EnrollPage() {
   const c = SEGMENT_CONTENT[segment];
 
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
 
-  const onSubmit = (e: FormEvent) => {
+  const GHL_WEBHOOK_URL =
+    "https://services.leadconnectorhq.com/hooks/XRUAQiOX2SqMvxDq2cIf/webhook-trigger/906f09ed-d684-41fc-8b5f-b3c14222b012";
+
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.email) return;
-    // TODO: POST /api/public/lead → GHL + Smartlead → Stripe Checkout
-    console.log("[lead]", { ...form, segment, pain });
-    setSubmitted(true);
+    if (!form.name || !form.email || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(GHL_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          segment,
+          pain,
+          source: "enroll-page",
+          event: "lead_captured",
+          submitted_at: new Date().toISOString(),
+        }),
+      });
+      if (!res.ok) throw new Error(`Webhook returned ${res.status}`);
+      setSubmitted(true);
+    } catch (err) {
+      console.error("[lead] webhook failed", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -130,8 +157,11 @@ function EnrollPage() {
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
-                <button type="submit" className="btn-navy w-full">
-                  Enroll Now — $149 One-Time
+                {error && (
+                  <p className="text-[13px] text-[var(--destructive,#c0392b)] text-center">{error}</p>
+                )}
+                <button type="submit" disabled={submitting} className="btn-navy w-full disabled:opacity-60">
+                  {submitting ? "Submitting…" : "Enroll Now — $149 One-Time"}
                 </button>
                 <p className="text-[12px] text-[var(--muted-foreground)] text-center mt-3 leading-relaxed">
                   Stripe & PayPal accepted · Instant course access · 30-day savings guarantee.
