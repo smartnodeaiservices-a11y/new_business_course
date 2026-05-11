@@ -1,0 +1,142 @@
+import { Link, useSearchParams } from "react-router-dom";
+import { motion } from "motion/react";
+import { CheckCircle2, ArrowRight, Mail, BookOpen, Calendar } from "lucide-react";
+import { readLead, clearLead } from "@/lib/lead";
+import { usePageMeta } from "@/lib/page-meta";
+import { useEffect } from "react";
+
+export default function SuccessPage() {
+  usePageMeta({ title: "You're enrolled — New Business Course" });
+
+  const [params] = useSearchParams();
+  const simulated = params.get("simulated") === "true";
+  const sessionId = params.get("session_id");
+  const lead = readLead();
+
+  useEffect(() => {
+    // Free the lead from session storage once they've completed the flow.
+    return () => clearLead();
+  }, []);
+
+  const nextSteps = simulated
+    ? [
+        {
+          icon: Mail,
+          label: "Check your email",
+          body: `We just sent confirmation to ${lead?.email ?? "your inbox"} along with onboarding instructions.`,
+        },
+        {
+          icon: BookOpen,
+          label: "Your courses are ready",
+          body: "Login details and course access arrive within 2 minutes — usually instant.",
+        },
+        {
+          icon: Calendar,
+          label: "Set aside 30 minutes",
+          body: "Most owners knock out the first module today and see savings before the week is out.",
+        },
+      ]
+    : [
+        {
+          icon: Mail,
+          label: "Receipt on the way",
+          body: `Stripe is sending a receipt to ${lead?.email ?? "your email"}. Save it for your business records.`,
+        },
+        {
+          icon: BookOpen,
+          label: "Your courses unlock now",
+          body: "Login details for your course library arrive within 2 minutes.",
+        },
+        {
+          icon: Calendar,
+          label: "Start when you're ready",
+          body: "Lifetime access — no rush. Most owners start with Module 01 the day they enroll.",
+        },
+      ];
+
+  return (
+    <section className="max-w-[720px] mx-auto px-6 py-16 md:py-24 text-center">
+      <motion.div
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
+        className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-success/10 border-2 border-success/30 mb-6"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.5, type: "spring", stiffness: 200 }}
+        >
+          <CheckCircle2 size={42} className="text-success" strokeWidth={2} />
+        </motion.div>
+      </motion.div>
+
+      <motion.h1
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.4 }}
+        className="mb-3"
+      >
+        {simulated ? "You're on the list." : "You're enrolled."}
+      </motion.h1>
+
+      <motion.p
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.4 }}
+        className="text-[17px] text-muted-foreground leading-relaxed mb-10"
+      >
+        {simulated
+          ? "Payment isn't connected yet on this site, but we've saved your details. Check your email for onboarding info and a payment link."
+          : "Thanks for your purchase. Everything you need is on its way."}
+      </motion.p>
+
+      <div className="grid gap-4 text-left mb-10">
+        {nextSteps.map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 + i * 0.1, duration: 0.4 }}
+              className="card-base p-5 flex items-start gap-4"
+            >
+              <div className="w-11 h-11 rounded-xl bg-gold-subtle border border-gold-tint flex items-center justify-center shrink-0">
+                <Icon size={18} className="text-gold" strokeWidth={2} />
+              </div>
+              <div>
+                <h4 className="mb-1">{s.label}</h4>
+                <p className="text-[14px] text-muted-foreground leading-relaxed">{s.body}</p>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {sessionId && (
+        <p className="text-[11px] text-muted-foreground mb-6">
+          Confirmation:{" "}
+          <code className="text-[11px] bg-surface px-1.5 py-0.5 rounded">
+            {sessionId.slice(0, 24)}…
+          </code>
+        </p>
+      )}
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 0.4 }}
+        className="flex flex-col sm:flex-row gap-3 justify-center"
+      >
+        <Link to="/" className="btn-gold hover:btn-gold-hover">
+          Browse all courses
+          <ArrowRight size={16} />
+        </Link>
+        <Link to="/contact" className="btn-outline hover:btn-outline-hover">
+          Need help? Contact us
+        </Link>
+      </motion.div>
+    </section>
+  );
+}
