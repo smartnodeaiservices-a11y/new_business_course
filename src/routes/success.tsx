@@ -9,7 +9,6 @@ export default function SuccessPage() {
   usePageMeta({ title: "You're enrolled — New Business Course" });
 
   const [params] = useSearchParams();
-  const simulated = params.get("simulated") === "true";
   const sessionId = params.get("session_id");
   const lead = readLead();
 
@@ -18,41 +17,23 @@ export default function SuccessPage() {
     return () => clearLead();
   }, []);
 
-  const nextSteps = simulated
-    ? [
-        {
-          icon: Mail,
-          label: "Check your email",
-          body: `We just sent confirmation to ${lead?.email ?? "your inbox"} along with onboarding instructions.`,
-        },
-        {
-          icon: BookOpen,
-          label: "Your courses are ready",
-          body: "Login details and course access arrive within 2 minutes — usually instant.",
-        },
-        {
-          icon: Calendar,
-          label: "Set aside 30 minutes",
-          body: "Most owners knock out the first module today and see savings before the week is out.",
-        },
-      ]
-    : [
-        {
-          icon: Mail,
-          label: "Receipt on the way",
-          body: `Stripe is sending a receipt to ${lead?.email ?? "your email"}. Save it for your business records.`,
-        },
-        {
-          icon: BookOpen,
-          label: "Your courses unlock now",
-          body: "Login details for your course library arrive within 2 minutes.",
-        },
-        {
-          icon: Calendar,
-          label: "Start when you're ready",
-          body: "Lifetime access — no rush. Most owners start with Module 01 the day they enroll.",
-        },
-      ];
+  const nextSteps = [
+    {
+      icon: Mail,
+      label: "Receipt on the way",
+      body: `Stripe is sending a receipt to ${lead?.email ?? "your email"}. Save it for your business records.`,
+    },
+    {
+      icon: BookOpen,
+      label: "Your courses unlock now",
+      body: "Login details for your course library arrive within 2 minutes.",
+    },
+    {
+      icon: Calendar,
+      label: "Start when you're ready",
+      body: "Lifetime access — no rush. Most owners start with Module 01 the day they enroll.",
+    },
+  ];
 
   return (
     <section className="max-w-[720px] mx-auto px-6 py-16 md:py-24 text-center">
@@ -77,7 +58,7 @@ export default function SuccessPage() {
         transition={{ delay: 0.3, duration: 0.4 }}
         className="mb-3"
       >
-        {simulated ? "You're on the list." : "You're enrolled."}
+        You're enrolled.
       </motion.h1>
 
       <motion.p
@@ -86,9 +67,7 @@ export default function SuccessPage() {
         transition={{ delay: 0.4, duration: 0.4 }}
         className="text-[17px] text-muted-foreground leading-relaxed mb-10"
       >
-        {simulated
-          ? "Payment isn't connected yet on this site, but we've saved your details. Check your email for onboarding info and a payment link."
-          : "Thanks for your purchase. Everything you need is on its way."}
+        Thanks for your purchase. Everything you need is on its way.
       </motion.p>
 
       <div className="grid gap-4 text-left mb-10">

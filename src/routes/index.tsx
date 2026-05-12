@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/accordion";
 import { CourseThumbnail } from "@/components/CourseThumbnail";
 import { VideoEmbed } from "@/components/VideoEmbed";
+import { BuyCourseButton } from "@/components/BuyCourseButton";
 import {
   listCourses,
   formatPrice,
@@ -660,16 +661,20 @@ export default function HomePage() {
                   </span>
                   <span className="text-[13px] text-white/60">one-time · lifetime</span>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Link to={`/courses/${bundle.slug}`} className="btn-gold hover:btn-gold-hover">
-                    View the bundle
+                <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+                  <BuyCourseButton
+                    course={bundle}
+                    source="home-bundle-cta"
+                    className="btn-gold hover:btn-gold-hover"
+                  >
+                    Buy the bundle
                     <ArrowRight size={16} />
-                  </Link>
+                  </BuyCourseButton>
                   <Link
-                    to="/intake"
+                    to={`/courses/${bundle.slug}`}
                     className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[10px] border border-white/20 text-white text-[14px] font-semibold hover:bg-white/5 transition-colors"
                   >
-                    Not sure? Take the intake
+                    View details
                   </Link>
                 </div>
               </div>
@@ -864,14 +869,18 @@ function FeaturedCourseCard({ course }: { course: Course }) {
         <p className="text-[14px] text-muted-foreground leading-relaxed mb-4 min-h-[42px]">
           {course.subtitle}
         </p>
-        <div className="flex items-center justify-between pt-4 border-t border-border">
+        <div className="flex items-center justify-between pt-4 border-t border-border gap-3">
           <span className="text-[20px] font-bold text-navy tabular-nums leading-none">
             {formatPrice(course.price_cents)}
           </span>
-          <span className="text-[13px] font-semibold text-navy inline-flex items-center gap-1 group-hover:text-gold transition-colors">
-            View
-            <ArrowRight size={14} />
-          </span>
+          <BuyCourseButton
+            course={course}
+            source="home-featured-card"
+            className="text-[12px] font-semibold px-3 py-1.5 rounded-full bg-gold text-navy hover:bg-gold/90 inline-flex items-center gap-1 transition-colors"
+          >
+            Buy
+            <ArrowRight size={12} />
+          </BuyCourseButton>
         </div>
       </div>
     </Link>

@@ -19,6 +19,7 @@ import {
 } from "@/integrations/supabase/courses";
 import { CourseThumbnail } from "@/components/CourseThumbnail";
 import { VideoEmbed } from "@/components/VideoEmbed";
+import { BuyCourseButton } from "@/components/BuyCourseButton";
 import { usePageMeta } from "@/lib/page-meta";
 
 const INCLUDES = [
@@ -68,7 +69,6 @@ export default function CourseDetailPage() {
     );
   }
 
-  const enrollHref = `/enroll?course=${encodeURIComponent(course.slug)}`;
   const totalMinutes = course.modules.reduce((s, m) => s + (m.duration_min ?? 0), 0);
 
   return (
@@ -113,10 +113,14 @@ export default function CourseDetailPage() {
               )}
 
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                <Link to={enrollHref} className="btn-gold hover:btn-gold-hover">
+                <BuyCourseButton
+                  course={course}
+                  source="course-detail-hero"
+                  className="btn-gold hover:btn-gold-hover"
+                >
                   Enroll now · {formatPrice(course.price_cents)}
                   <ArrowRight size={16} />
-                </Link>
+                </BuyCourseButton>
                 <Link to="/intake" className="btn-outline hover:btn-outline-hover">
                   Not sure? Take the intake
                 </Link>
@@ -149,10 +153,14 @@ export default function CourseDetailPage() {
                   <p className="text-[12px] text-muted-foreground mb-5">
                     One-time payment · No subscription
                   </p>
-                  <Link to={enrollHref} className="btn-gold hover:btn-gold-hover w-full mb-4">
+                  <BuyCourseButton
+                    course={course}
+                    source="course-detail-sidebar"
+                    className="btn-gold hover:btn-gold-hover w-full mb-4"
+                  >
                     Enroll now
                     <ArrowRight size={16} />
-                  </Link>
+                  </BuyCourseButton>
                   <ul className="space-y-2.5 pt-4 border-t border-border">
                     {INCLUDES.map((item) => {
                       const Icon = item.icon;
@@ -307,10 +315,14 @@ export default function CourseDetailPage() {
             savings or get your money back.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to={enrollHref} className="btn-gold hover:btn-gold-hover">
+            <BuyCourseButton
+              course={course}
+              source="course-detail-footer"
+              className="btn-gold hover:btn-gold-hover"
+            >
               Enroll now · {formatPrice(course.price_cents)}
               <ArrowRight size={16} />
-            </Link>
+            </BuyCourseButton>
             <Link
               to="/"
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[10px] border border-white/20 text-white text-[14px] font-semibold hover:bg-white/5 transition-colors"

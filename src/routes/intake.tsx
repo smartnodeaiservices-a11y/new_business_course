@@ -26,16 +26,11 @@ import {
 import { CourseThumbnail } from "@/components/CourseThumbnail";
 import { LeadCaptureStep } from "@/components/LeadCaptureStep";
 import { readLead, writeLead, persistLeadToSupabase, type Lead } from "@/lib/lead";
-import {
-  redirectToStripeCheckout,
-  isStripeConfigured,
-  StripeNotConfiguredError,
-  StripeNoPriceIdsError,
-} from "@/lib/stripe";
+import { redirectToStripeCheckout, isStripeConfigured } from "@/lib/stripe";
 import { FALLBACK_COURSES } from "@/lib/fallback-courses";
 import { usePageMeta } from "@/lib/page-meta";
 
-type Step = "lead" | "questions" | "plan";
+type Step = "lead" | "questions" | "plan" | "direct";
 
 type Answers = {
   stage: IntakeProfile["stage"] | null;
@@ -174,10 +169,9 @@ export default function IntakePage() {
 
   // Step machine — flow varies by entry point:
   //   /intake             → "questions" → "lead" → "plan"
-  //   /enroll?course=X    → "lead"      → "plan"
-  //   (if lead in session, skip lead step entirely)
+  //   /enroll?course=X    → "direct" (single-screen email + pay → Stripe)
   const [step, setStep] = useState<Step>(() => {
-    if (directCourse || courseSlug) return lead ? "plan" : "lead";
+    if (directCourse || courseSlug) return "direct";
     return "questions";
   });
 
@@ -208,6 +202,48 @@ export default function IntakePage() {
   return (
     <section className="max-w-[1100px] mx-auto px-6 md:px-10 py-14 md:py-20">
       <AnimatePresence mode="wait">
+        {step === "direct" && directCourse && (
+          <motion.div
+            key="direct"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <DirectEnrollView
+              course={directCourse}
+              initialLead={lead}
+              source={searchParams.get("variant") ?? searchParams.get("utm_source") ?? "enroll"}
+              onLeadSaved={(l) => {
+                setLead(l);
+                writeLead(l);
+              }}
+            />
+          </motion.div>
+        )}
+
+        {step === "direct" && !directCourse && (
+          <div className="max-w-[640px] mx-auto text-center py-12">
+            <h1 className="mb-3">We couldn't find that course.</h1>
+            <p className="text-[15px] text-muted-foreground mb-6">
+              The course <code>{courseSlug}</code> doesn't exist. Browse the catalog or take the
+              60-second intake for a personalized plan.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link to="/courses" className="btn-gold hover:btn-gold-hover">
+                Browse all courses
+                <ArrowRight size={14} />
+              </Link>
+              <button
+                onClick={() => setStep("questions")}
+                className="btn-outline hover:btn-outline-hover"
+              >
+                Take the intake
+              </button>
+            </div>
+          </div>
+        )}
+
         {step === "questions" && (
           <motion.div
             key="questions"
@@ -272,7 +308,6 @@ export default function IntakePage() {
                 setQuestionIdx(0);
                 setStep("questions");
               }}
-              onConfirmed={() => navigate("/success?simulated=true")}
             />
           </motion.div>
         )}
@@ -422,14 +457,12 @@ function PlanView({
   courseList,
   directCourse,
   onRetake,
-  onConfirmed,
 }: {
   lead: Lead;
   answers: Answers;
   courseList: Course[];
   directCourse: Course | null;
   onRetake: () => void;
-  onConfirmed: () => void;
 }) {
   const recommendation = useMemo(() => {
     if (directCourse) {
@@ -492,29 +525,32 @@ function PlanView({
         source: directCourse ? `enroll:${directCourse.slug}` : "intake",
       });
 
-      // Find courses missing Stripe Price IDs
-      const missingPriceIds = selectedCourses.filter((c) => !c.stripe_price_id);
-      if (missingPriceIds.length > 0 || !isStripeConfigured()) {
-        // Graceful fallback: route to a confirmation page; tell user we'll email them.
-        onConfirmed();
+      if (!isStripeConfigured()) {
+        setError(
+          "Payment isn't configured yet. Set VITE_STRIPE_PUBLISHABLE_KEY in .env and deploy the create-checkout-session Edge Function.",
+        );
+        setPaying(false);
         return;
       }
 
       await redirectToStripeCheckout({
-        lineItems: selectedCourses.map((c) => ({ priceId: c.stripe_price_id! })),
+        lineItems: selectedCourses.map((c) => ({
+          name: c.title,
+          description: c.subtitle,
+          amountCents: c.price_cents,
+          priceId: c.stripe_price_id ?? undefined,
+        })),
         customerEmail: lead.email,
         successPath: "/success",
         cancelPath: "/cancel",
+        metadata: {
+          course_slugs: selectedCourses.map((c) => c.slug).join(","),
+          source: directCourse ? `enroll:${directCourse.slug}` : "intake",
+        },
       });
     } catch (err) {
       console.error("[pay]", err);
-      if (err instanceof StripeNotConfiguredError || err instanceof StripeNoPriceIdsError) {
-        // Friendly fallback
-        onConfirmed();
-        return;
-      }
       setError(err instanceof Error ? err.message : "Payment couldn't start. Please try again.");
-    } finally {
       setPaying(false);
     }
   }
@@ -816,6 +852,224 @@ function PlanView({
       <p className="mt-6 text-[12px] text-muted-foreground text-center">
         Sending a receipt to <strong>{lead.email}</strong>
       </p>
+    </div>
+  );
+}
+
+// ===== Direct Enroll View =====
+// Used when the URL has ?course=<slug>. Single screen: course summary,
+// email + name form, one button straight to Stripe Checkout.
+
+function DirectEnrollView({
+  course,
+  initialLead,
+  source,
+  onLeadSaved,
+}: {
+  course: Course;
+  initialLead: Lead | null;
+  source: string;
+  onLeadSaved: (lead: Lead) => void;
+}) {
+  const [name, setName] = useState(initialLead?.name ?? "");
+  const [email, setEmail] = useState(initialLead?.email ?? "");
+  const [paying, setPaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canBuyDirect = isStripeConfigured() && !!course.stripe_price_id;
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+  async function handlePay(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    if (!trimmedName) {
+      setError("Please enter your name.");
+      return;
+    }
+    if (!isValidEmail) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    const lead: Lead = { name: trimmedName, email: trimmedEmail, phone: "" };
+    onLeadSaved(lead);
+
+    setPaying(true);
+    try {
+      await persistLeadToSupabase(lead, { source: `enroll:${source}:${course.slug}` });
+
+      if (!isStripeConfigured()) {
+        setError(
+          "Payment isn't configured yet. Set VITE_STRIPE_PUBLISHABLE_KEY in .env and deploy the create-checkout-session Edge Function.",
+        );
+        setPaying(false);
+        return;
+      }
+
+      await redirectToStripeCheckout({
+        lineItems: [
+          {
+            name: course.title,
+            description: course.subtitle,
+            amountCents: course.price_cents,
+            priceId: course.stripe_price_id ?? undefined,
+          },
+        ],
+        customerEmail: trimmedEmail,
+        successPath: "/success",
+        cancelPath: "/cancel",
+        metadata: { course_slug: course.slug, source: `enroll:${source}` },
+      });
+    } catch (err) {
+      console.error("[direct-enroll]", err);
+      setError(err instanceof Error ? err.message : "Payment couldn't start. Please try again.");
+      setPaying(false);
+    }
+  }
+
+  return (
+    <div className="max-w-[760px] mx-auto">
+      <div className="grid md:grid-cols-[1fr_1.1fr] gap-8 items-start">
+        {/* Course summary */}
+        <aside className="card-base p-3 md:sticky md:top-24">
+          <CourseThumbnail
+            category={course.category}
+            title={course.title}
+            level={LEVEL_LABEL[course.level]}
+            size="md"
+          />
+          <div className="px-3 pt-4 pb-3">
+            <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-gold bg-gold-subtle border border-gold-tint px-2.5 py-1 rounded inline-block mb-3">
+              {CATEGORY_LABEL[course.category]}
+            </span>
+            <h3 className="mb-2">{course.title}</h3>
+            <p className="text-[13.5px] text-muted-foreground leading-relaxed mb-4">
+              {course.subtitle}
+            </p>
+            <div className="flex items-baseline gap-2 mb-4 pb-4 border-b border-border">
+              {course.original_price_cents && (
+                <span className="text-[14px] text-muted-foreground line-through tabular-nums">
+                  {formatPrice(course.original_price_cents)}
+                </span>
+              )}
+              <span className="text-[28px] font-bold text-navy tabular-nums leading-none">
+                {formatPrice(course.price_cents)}
+              </span>
+              <span className="text-[12px] text-muted-foreground ml-1">one-time</span>
+            </div>
+            <ul className="space-y-2 text-[13px] text-foreground">
+              <li className="flex items-center gap-2">
+                <Shield size={14} className="text-gold shrink-0" />
+                30-day money-back guarantee
+              </li>
+              <li className="flex items-center gap-2">
+                <BookOpen size={14} className="text-gold shrink-0" />
+                Lifetime access + future updates
+              </li>
+              <li className="flex items-center gap-2">
+                <Clock size={14} className="text-gold shrink-0" />
+                {course.duration_hours}h · {course.module_count} modules
+              </li>
+            </ul>
+          </div>
+        </aside>
+
+        {/* Email + pay form */}
+        <div>
+          <p className="eyebrow mb-3">You're one step away</p>
+          <h1 className="mb-3">Enroll in {course.title}.</h1>
+          <p className="text-[15.5px] text-muted-foreground leading-relaxed mb-7">
+            Tell us where to send your receipt and course access — then you'll be redirected to
+            secure checkout.
+          </p>
+
+          <form onSubmit={handlePay} className="space-y-5">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="direct-name"
+                className="block text-[13px] font-semibold text-navy"
+              >
+                Full name
+              </label>
+              <input
+                id="direct-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Jane Smith"
+                autoComplete="name"
+                disabled={paying}
+                required
+                className="input-base focus:input-base-focus w-full"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="direct-email"
+                className="block text-[13px] font-semibold text-navy"
+              >
+                Email
+              </label>
+              <input
+                id="direct-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@business.com"
+                autoComplete="email"
+                disabled={paying}
+                required
+                className="input-base focus:input-base-focus w-full"
+              />
+              <p className="text-[12px] text-muted-foreground">
+                We'll send your receipt and course access here.
+              </p>
+            </div>
+
+            {error && (
+              <div
+                role="alert"
+                className="text-[13px] text-destructive bg-destructive/5 border border-destructive/20 rounded-lg px-3 py-2"
+              >
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={paying}
+              className="btn-gold hover:btn-gold-hover w-full disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {paying ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Redirecting to secure checkout…
+                </>
+              ) : (
+                <>
+                  <CreditCard size={16} />
+                  Continue to payment · {formatPrice(course.price_cents)}
+                </>
+              )}
+            </button>
+
+            <p className="text-center text-[12px] text-muted-foreground">
+              Powered by Stripe · Your card details never touch our servers.
+            </p>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-border">
+            <p className="text-[13px] text-muted-foreground">
+              Not sure if this is the right course?{" "}
+              <Link to="/intake" className="font-semibold text-navy hover:text-gold">
+                Take the 60-second intake instead.
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

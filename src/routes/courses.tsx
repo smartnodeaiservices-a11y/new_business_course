@@ -23,6 +23,7 @@ import {
 } from "@/integrations/supabase/courses";
 import { FALLBACK_COURSES } from "@/lib/fallback-courses";
 import { CourseThumbnail } from "@/components/CourseThumbnail";
+import { BuyCourseButton } from "@/components/BuyCourseButton";
 import { usePageMeta } from "@/lib/page-meta";
 
 type SortMode = "featured" | "price-asc" | "price-desc" | "duration-asc";
@@ -370,7 +371,7 @@ function CourseCard({ course }: { course: Course }) {
         <p className="text-[14px] text-muted-foreground leading-relaxed mb-4 min-h-[42px]">
           {course.subtitle}
         </p>
-        <div className="flex items-center justify-between pt-4 border-t border-border">
+        <div className="flex items-center justify-between pt-4 border-t border-border gap-3">
           <div className="flex items-baseline gap-2">
             {course.original_price_cents && (
               <span className="text-[13px] text-muted-foreground line-through tabular-nums">
@@ -381,10 +382,14 @@ function CourseCard({ course }: { course: Course }) {
               {formatPrice(course.price_cents)}
             </span>
           </div>
-          <span className="text-[13px] font-semibold text-navy inline-flex items-center gap-1 group-hover:text-gold transition-colors">
-            View
-            <ArrowRight size={14} />
-          </span>
+          <BuyCourseButton
+            course={course}
+            source="courses-list-card"
+            className="text-[12px] font-semibold px-3 py-1.5 rounded-full bg-gold text-navy hover:bg-gold/90 inline-flex items-center gap-1 transition-colors"
+          >
+            Buy
+            <ArrowRight size={12} />
+          </BuyCourseButton>
         </div>
       </div>
     </Link>
@@ -393,10 +398,7 @@ function CourseCard({ course }: { course: Course }) {
 
 function BundleHighlight({ course }: { course: Course }) {
   return (
-    <Link
-      to={`/courses/${course.slug}`}
-      className="block relative overflow-hidden rounded-2xl bg-navy text-white p-6 md:p-8 group border-2 border-gold"
-    >
+    <div className="relative overflow-hidden rounded-2xl bg-navy text-white p-6 md:p-8 border-2 border-gold">
       <div className="absolute inset-0 pointer-events-none" aria-hidden>
         <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-gold opacity-[0.08] blur-3xl translate-x-1/3 -translate-y-1/3" />
       </div>
@@ -410,7 +412,7 @@ function BundleHighlight({ course }: { course: Course }) {
           <p className="text-white/75 text-[15.5px] leading-relaxed mb-5 max-w-xl">
             {course.subtitle} Pay once, get every course we offer plus every future update.
           </p>
-          <div className="flex flex-wrap items-baseline gap-3">
+          <div className="flex flex-wrap items-baseline gap-3 mb-6">
             {course.original_price_cents && (
               <span className="text-[18px] text-white/40 line-through tabular-nums">
                 {formatPrice(course.original_price_cents)}
@@ -424,10 +426,23 @@ function BundleHighlight({ course }: { course: Course }) {
                 Save {formatPrice(course.original_price_cents - course.price_cents)}
               </span>
             )}
-            <span className="ml-auto text-[13px] font-semibold text-gold inline-flex items-center gap-1.5 group-hover:gap-2 transition-all">
-              View bundle
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <BuyCourseButton
+              course={course}
+              source="courses-list-bundle"
+              className="btn-gold hover:btn-gold-hover"
+            >
+              Buy bundle now
               <ArrowRight size={14} />
-            </span>
+            </BuyCourseButton>
+            <Link
+              to={`/courses/${course.slug}`}
+              className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-gold hover:text-white transition-colors"
+            >
+              View details
+              <ArrowRight size={14} />
+            </Link>
           </div>
         </div>
         <div className="hidden md:block">
@@ -439,6 +454,6 @@ function BundleHighlight({ course }: { course: Course }) {
           />
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

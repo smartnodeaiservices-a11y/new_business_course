@@ -1,19 +1,18 @@
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import { supabase } from "@/integrations/supabase/client";
 
-// Reads the publishable key from Vite env. Set VITE_STRIPE_PUBLISHABLE_KEY in .env.
+// Frontend only needs the publishable key to know whether Stripe is wired up.
+// The secret key lives ONLY in Supabase Edge Function secrets — never in this repo.
 const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
 
-let stripePromise: Promise<Stripe | null> | null = null;
-
-function getStripe(): Promise<Stripe | null> | null {
-  if (!PUBLISHABLE_KEY) return null;
-  if (!stripePromise) stripePromise = loadStripe(PUBLISHABLE_KEY);
-  return stripePromise;
-}
-
 export type CheckoutLineItem = {
-  priceId: string;
+  /** Ad-hoc line item built from the DB. */
+  name: string;
+  amountCents: number;
+  description?: string;
+  currency?: string;
   quantity?: number;
+  /** Optional pre-defined Stripe price (overrides amount/name when present). */
+  priceId?: string;
 };
 
 export type CheckoutOptions = {
@@ -21,62 +20,53 @@ export type CheckoutOptions = {
   customerEmail?: string;
   successPath?: string; // e.g. "/success"
   cancelPath?: string; // e.g. "/cancel"
+  metadata?: Record<string, string>;
 };
 
 export class StripeNotConfiguredError extends Error {
   constructor() {
     super(
-      "Stripe isn't configured yet. Add VITE_STRIPE_PUBLISHABLE_KEY to .env and a Stripe Price ID to each course in /admin.",
+      "Stripe isn't configured yet. Add VITE_STRIPE_PUBLISHABLE_KEY to .env and deploy the create-checkout-session Edge Function.",
     );
     this.name = "StripeNotConfiguredError";
   }
 }
 
-export class StripeNoPriceIdsError extends Error {
-  constructor(missingTitles: string[]) {
-    super(
-      `These courses don't have a Stripe Price ID set yet: ${missingTitles.join(", ")}. Add one in /admin → Courses → Edit.`,
-    );
-    this.name = "StripeNoPriceIdsError";
-  }
-}
-
 /**
- * Redirects the user to Stripe Checkout. Uses Stripe's "client-only" mode
- * (no backend required) — we pass Price IDs that admin pre-created in the
- * Stripe Dashboard.
- *
- * If Stripe isn't configured yet, this throws so the caller can fall back
- * gracefully (e.g. show a friendly "we'll be in touch" screen).
+ * Calls the `create-checkout-session` Edge Function and redirects the browser
+ * to the returned Stripe Checkout URL. The Edge Function holds the secret key
+ * and builds line items from the database prices.
  */
 export async function redirectToStripeCheckout(options: CheckoutOptions): Promise<void> {
-  const stripe = await getStripe();
-  if (!stripe) throw new StripeNotConfiguredError();
+  if (!PUBLISHABLE_KEY) throw new StripeNotConfiguredError();
 
   const successUrl = `${window.location.origin}${options.successPath ?? "/success"}?session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = `${window.location.origin}${options.cancelPath ?? "/cancel"}`;
 
-  // `redirectToCheckout` is in maintenance mode (still supported at runtime, removed
-  // from @stripe/stripe-js v9 types). For a future-proof setup, create checkout sessions
-  // via a Supabase Edge Function and redirect to `session.url`.
-  type LegacyRedirect = (opts: {
-    lineItems: { price: string; quantity: number }[];
-    mode: "payment";
-    successUrl: string;
-    cancelUrl: string;
-    customerEmail?: string;
-  }) => Promise<{ error?: { message?: string } }>;
+  const { data, error } = await supabase.functions.invoke<{ url?: string; error?: string }>(
+    "create-checkout-session",
+    {
+      body: {
+        lineItems: options.lineItems.map((li) => ({
+          priceId: li.priceId,
+          name: li.name,
+          amountCents: li.amountCents,
+          description: li.description,
+          currency: li.currency ?? "usd",
+          quantity: li.quantity ?? 1,
+        })),
+        customerEmail: options.customerEmail,
+        successUrl,
+        cancelUrl,
+        metadata: options.metadata,
+      },
+    },
+  );
 
-  const redirect = (stripe as unknown as { redirectToCheckout: LegacyRedirect }).redirectToCheckout;
-  const { error } = await redirect({
-    lineItems: options.lineItems.map((li) => ({ price: li.priceId, quantity: li.quantity ?? 1 })),
-    mode: "payment",
-    successUrl,
-    cancelUrl,
-    customerEmail: options.customerEmail,
-  });
+  if (error) throw new Error(error.message ?? "Failed to create Stripe Checkout session.");
+  if (!data?.url) throw new Error(data?.error ?? "Stripe Checkout session returned no URL.");
 
-  if (error) throw new Error(error.message ?? "Stripe checkout failed.");
+  window.location.assign(data.url);
 }
 
 export function isStripeConfigured(): boolean {
