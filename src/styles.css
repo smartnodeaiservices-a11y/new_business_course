@@ -305,3 +305,61 @@
 @utility btn-ghost-hover {
   background: var(--surface);
 }
+
+@utility card-base {
+  background: #ffffff;
+  border: 1px solid var(--surface);
+  border-radius: 12px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+@utility input-base {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--surface);
+  background: #ffffff;
+  font-size: 14.5px;
+  color: var(--foreground);
+  font-family: inherit;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+@utility input-base-focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 146, 42, 0.18);
+}
+
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gold-subtle);
+  border: 1px solid var(--gold-tint);
+  color: var(--navy);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+
+/* Auto-apply focus styling to input-base inputs/textareas. */
+.input-base:focus,
+textarea.input-base:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 146, 42, 0.18);
+}
+textarea.input-base {
+  height: auto;
+  padding: 10px 12px;
+  line-height: 1.5;
+}

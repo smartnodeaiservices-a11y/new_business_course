@@ -6,6 +6,11 @@ import RandomVariantHome from "@/routes/home-random";
 import IntakePage from "@/routes/intake";
 import CourseDetailPage from "@/routes/course-detail";
 import CoursesPage from "@/routes/courses";
+import CurriculumPage from "@/routes/curriculum";
+import ModuleDetailPage from "@/routes/module-detail";
+import CpaConsultationPage from "@/routes/cpa-consultation";
+import ReferPage from "@/routes/refer";
+import ReferLandingPage from "@/routes/refer-landing";
 import AboutPage from "@/routes/about";
 import ContactPage from "@/routes/contact";
 import SuccessPage from "@/routes/success";
@@ -65,6 +70,11 @@ export default function App() {
       <Route element={<RootLayout />}>
         <Route path="home-classic" element={<HomePage />} />
         <Route path="intake" element={<IntakePage />} />
+        <Route path="curriculum" element={<CurriculumPage />} />
+        <Route path="modules/:slug" element={<ModuleDetailPage />} />
+        <Route path="cpa-consultation" element={<CpaConsultationPage />} />
+        <Route path="refer" element={<ReferPage />} />
+        <Route path="refer/:code" element={<ReferLandingPage />} />
         <Route path="courses" element={<CoursesPage />} />
         <Route path="courses/:slug" element={<CourseDetailPage />} />
         {/* /enroll routes into the same flow with a preselected course. */}

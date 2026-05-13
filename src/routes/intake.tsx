@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
@@ -29,6 +29,7 @@ import { readLead, writeLead, persistLeadToSupabase, type Lead } from "@/lib/lea
 import { redirectToStripeCheckout, isStripeConfigured } from "@/lib/stripe";
 import { FALLBACK_COURSES } from "@/lib/fallback-courses";
 import { usePageMeta } from "@/lib/page-meta";
+import { captureReferralCode, readReferralCode, REFERRAL_QUERY_PARAM } from "@/lib/referral";
 
 type Step = "lead" | "questions" | "plan" | "direct";
 
@@ -146,6 +147,13 @@ export default function IntakePage() {
   const [searchParams] = useSearchParams();
   const courseSlug = searchParams.get("course"); // Direct enroll route
   const navigate = useNavigate();
+
+  // Capture ?via=<CODE> into the referral cookie once on mount so any
+  // downstream checkout (intake bundle, direct enroll, CPA call) picks it up.
+  useEffect(() => {
+    const via = searchParams.get(REFERRAL_QUERY_PARAM);
+    if (via) captureReferralCode(via);
+  }, [searchParams]);
 
   const { data: courses } = useQuery({
     queryKey: ["courses"],
@@ -533,6 +541,7 @@ function PlanView({
         return;
       }
 
+      const referralCode = readReferralCode();
       await redirectToStripeCheckout({
         lineItems: selectedCourses.map((c) => ({
           name: c.title,
@@ -546,6 +555,7 @@ function PlanView({
         metadata: {
           course_slugs: selectedCourses.map((c) => c.slug).join(","),
           source: directCourse ? `enroll:${directCourse.slug}` : "intake",
+          ...(referralCode ? { referral_code: referralCode } : {}),
         },
       });
     } catch (err) {
@@ -909,6 +919,7 @@ function DirectEnrollView({
         return;
       }
 
+      const referralCode = readReferralCode();
       await redirectToStripeCheckout({
         lineItems: [
           {
@@ -921,7 +932,11 @@ function DirectEnrollView({
         customerEmail: trimmedEmail,
         successPath: "/success",
         cancelPath: "/cancel",
-        metadata: { course_slug: course.slug, source: `enroll:${source}` },
+        metadata: {
+          course_slug: course.slug,
+          source: `enroll:${source}`,
+          ...(referralCode ? { referral_code: referralCode } : {}),
+        },
       });
     } catch (err) {
       console.error("[direct-enroll]", err);

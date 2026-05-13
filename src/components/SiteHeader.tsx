@@ -6,8 +6,9 @@ import { Logo } from "./Logo";
 
 const links: ReadonlyArray<{ to: string; label: string; end?: boolean }> = [
   { to: "/", label: "Home", end: true },
-  { to: "/courses", label: "Courses" },
-  { to: "/intake", label: "Find my plan" },
+  { to: "/curriculum", label: "Curriculum" },
+  { to: "/cpa-consultation", label: "CPA Call" },
+  { to: "/refer", label: "Refer & Earn" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
@@ -49,7 +50,7 @@ export function SiteHeader() {
         </nav>
         <div className="hidden md:flex items-center gap-3">
           <Link
-            to="/intake"
+            to="/curriculum"
             className="btn-gold hover:btn-gold-hover min-h-0! py-2.5! px-5! text-[13px]!"
           >
             Get started
@@ -121,7 +122,7 @@ export function SiteHeader() {
                 transition={{ delay: 0.25, duration: 0.25 }}
               >
                 <Link
-                  to="/intake"
+                  to="/curriculum"
                   onClick={() => setOpen(false)}
                   className="btn-gold hover:btn-gold-hover w-full mt-2"
                 >
