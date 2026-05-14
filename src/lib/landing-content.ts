@@ -49,24 +49,28 @@ export const FOUNDATIONS_INCLUDES = [
 
 export const FOUNDATIONS_FAQ = [
   {
-    q: "Is this only for Florida owners?",
-    a: "No — the federal framework applies to every U.S. business owner. We do call out Florida-specific guidance where state law affects the answer (no state income tax has implications), and we note the differences for high-tax states like CA, NY, NJ.",
+    q: "Will this course really replace what a CPA or attorney would tell me?",
+    a: "This course covers the foundational knowledge that CPAs, business attorneys, and financial planners charge hundreds of dollars per hour to explain — topics like how to pay yourself, tax deduction strategy, payroll compliance, asset protection, and retirement accounts. You'll come out of this course knowing what questions to ask, how the systems work, and how to implement the right strategies. For complex or highly specific situations, you may still want to consult a professional — but you'll do it far less often, and you'll show up far better prepared, which means shorter (and cheaper) consultations.",
   },
   {
-    q: "I already have a CPA. Is this still useful?",
-    a: "Yes — most owners with a CPA still leave money on the table because their CPA prepares returns rather than advising on strategy. This course gives you the language to ask better questions and the framework to spot when advice is wrong or incomplete.",
+    q: "Do I still need a CPA after taking this course?",
+    a: "That's up to you — but you'll need them a lot less. Many students use this course to handle their own bookkeeping, payroll, and quarterly tax planning, then use a CPA only for annual tax filing. Others still use a CPA regularly, but with a much shorter (and cheaper) engagement because they already understand their own financials. Either way, this course will save you money.",
   },
   {
-    q: "How long until I see the savings?",
-    a: "The S-Corp election alone (Module 1) can save $4K–$11K/yr starting the quarter you file. Retirement deferrals (Module 4) reduce this year's tax bill. Most owners recoup the $149 within the first quarter.",
+    q: "Who is this course for?",
+    a: "This course is built specifically for people who have recently formed a new business entity — an LLC, S-Corp, or similar structure — and need to know exactly what to do next on the financial and tax side. No prior business or accounting knowledge required.",
   },
   {
-    q: "What if I haven't formed my business yet?",
-    a: "Even better — you'll avoid the $5K+ in mistakes most owners make in their first 24 months. The course walks you through entity formation step by step.",
+    q: "Do I need accounting experience?",
+    a: "Absolutely not. The course is written in plain English and designed for complete beginners. Every concept is explained from the ground up with practical examples you can apply immediately to your own business.",
   },
   {
-    q: "Do you offer a refund?",
-    a: "Yes — 30 days, no questions. If you don't uncover at least $2,000 in potential tax savings or process improvements after going through the course, email us for a full refund.",
+    q: "How long will it take to complete?",
+    a: "The course is fully self-paced. Most students complete it in 2–4 weeks at a comfortable pace. But you can move as fast or slow as you like — and revisit any module at any time since you have lifetime access.",
+  },
+  {
+    q: "Is there a money-back guarantee?",
+    a: "Yes — we offer a 30-day satisfaction guarantee. If you make a genuine effort to apply the material and don't feel it was worth it, email us within 30 days for a full refund. See our Refund Policy for full eligibility details.",
   },
 ];
 

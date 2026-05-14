@@ -5,6 +5,11 @@
 // During checkout it is forwarded to Stripe via the session `metadata`.
 // On /success the browser POSTs the code + Stripe session_id to the
 // `record-referral` Edge Function which verifies + records the conversion.
+//
+// Code allocation runs entirely client-side against the `referrals` table —
+// the RLS policy added in 20260514080000_referrals_client_writes.sql pins
+// money/status fields to their safe defaults so a malicious client cannot
+// inflate their own balance.
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,7 +27,46 @@ export type Referral = {
   commission_cents: number;
   referee_discount_cents: number;
   status: string;
+  referred_by_code?: string | null;
 };
+
+// Friendly 7-char code: avoids ambiguous chars (0/O, 1/I/L).
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function generateCode(): string {
+  let out = "";
+  for (let i = 0; i < 7; i++) {
+    out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  }
+  return out;
+}
+
+const REFERRAL_COLUMNS =
+  "code, owner_name, count, total_earned_cents, commission_cents, referee_discount_cents, status, referred_by_code";
+
+// The generated supabase types haven't been regenerated since the `referrals`
+// table (and the new `referred_by_code` column) were added, so we cast through
+// `unknown` to a narrow shape rather than fighting them.
+type FromTable = {
+  select: (cols: string) => {
+    eq: (
+      col: string,
+      val: string,
+    ) => {
+      maybeSingle: () => Promise<{ data: Referral | null; error: { message: string } | null }>;
+    };
+  };
+  insert: (row: Record<string, unknown>) => {
+    select: (cols: string) => {
+      single: () => Promise<{
+        data: Referral | null;
+        error: { message: string; code?: string } | null;
+      }>;
+    };
+  };
+};
+function table(name: string): FromTable {
+  return (supabase.from as unknown as (t: string) => FromTable)(name);
+}
 
 /** Persists a referral code locally for later checkout metadata pickup. */
 export function captureReferralCode(rawCode: string): string | null {
@@ -64,41 +108,76 @@ export function clearReferralCode(): void {
 export async function fetchReferralByCode(code: string): Promise<Referral | null> {
   const c = code.trim().toUpperCase();
   if (!c) return null;
-  // Cast around the stale generated types — `referrals` table was added in
-  // a later migration than supabase/types.ts was generated from.
-  const from = supabase.from as unknown as (t: string) => {
-    select: (cols: string) => {
-      eq: (col: string, val: string) => {
-        maybeSingle: () => Promise<{ data: Referral | null; error: unknown }>;
-      };
-    };
-  };
-  const { data, error } = await from("referrals")
-    .select(
-      "code, owner_name, count, total_earned_cents, commission_cents, referee_discount_cents, status",
-    )
+  const { data, error } = await table("referrals")
+    .select(REFERRAL_COLUMNS)
     .eq("code", c)
     .maybeSingle();
   if (error || !data) return null;
   return data;
 }
 
-/** Create or fetch a referral code for the given email (uses Edge Function). */
+/**
+ * Create or fetch a referral code for the given email. Runs entirely
+ * client-side. Idempotent — calling twice with the same email returns the
+ * same code.
+ *
+ * If `referredByCode` is supplied (typically `readReferralCode()` — the code
+ * captured when the visitor landed via `/refer/:code`) we link the new code
+ * back to its referrer so we can show "X invited you" on the dashboard and
+ * later credit the conversion chain.
+ */
 export async function claimReferral(
   email: string,
   name?: string,
+  referredByCode?: string | null,
 ): Promise<{ referral: Referral; created: boolean }> {
-  const { data, error } = await supabase.functions.invoke<{
-    ok: boolean;
-    referral: Referral;
-    created?: boolean;
-    error?: string;
-  }>("claim-referral", {
-    body: { email, name },
-  });
-  if (error) throw new Error(error.message);
-  if (!data?.ok || !data.referral) throw new Error(data?.error ?? "Could not claim a code.");
-  return { referral: data.referral, created: !!data.created };
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    throw new Error("Valid email is required.");
+  }
+  const normalizedName = name?.trim() || null;
+  const linkBack = referredByCode?.trim().toUpperCase() || null;
+
+  // 1. Already have a code for this email? Return it as-is.
+  const { data: existing } = await table("referrals")
+    .select(REFERRAL_COLUMNS)
+    .eq("owner_email", normalizedEmail)
+    .maybeSingle();
+  if (existing) {
+    return { referral: existing, created: false };
+  }
+
+  // 2. Insert with retry on the rare code collision (~1 in 31^7).
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = generateCode();
+    const { data, error } = await table("referrals")
+      .insert({
+        code,
+        owner_email: normalizedEmail,
+        owner_name: normalizedName,
+        referred_by_code: linkBack,
+      })
+      .select(REFERRAL_COLUMNS)
+      .single();
+    if (!error && data) {
+      return { referral: data, created: true };
+    }
+    if (error && /duplicate|unique|23505/i.test(error.message ?? "")) {
+      // Collision on `code` PK — retry. Collision on owner_email means
+      // someone raced us between step 1 and 2 — re-fetch and return.
+      if (/owner_email/i.test(error.message)) {
+        const { data: raced } = await table("referrals")
+          .select(REFERRAL_COLUMNS)
+          .eq("owner_email", normalizedEmail)
+          .maybeSingle();
+        if (raced) return { referral: raced, created: false };
+      }
+      continue;
+    }
+    if (error) throw new Error(error.message);
+  }
+
+  throw new Error("Could not allocate a referral code. Please try again.");
 }
 
 export async function recordConversion(

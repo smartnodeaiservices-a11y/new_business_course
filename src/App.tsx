@@ -16,6 +16,10 @@ import ContactPage from "@/routes/contact";
 import SuccessPage from "@/routes/success";
 import CancelPage from "@/routes/cancel";
 import AdminPage from "@/routes/admin";
+import PrivacyPage from "@/routes/privacy";
+import TermsPage from "@/routes/terms";
+import RefundPolicyPage from "@/routes/refund-policy";
+import AccessibilityPage from "@/routes/accessibility";
 import LandingV1 from "@/routes/lp/v1";
 import LandingV2 from "@/routes/lp/v2";
 import LandingV3 from "@/routes/lp/v3";
@@ -83,6 +87,13 @@ export default function App() {
         <Route path="cancel" element={<CancelPage />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="contact" element={<ContactPage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="privacy-policy" element={<PrivacyPage />} />
+        <Route path="terms" element={<TermsPage />} />
+        <Route path="terms-of-service" element={<TermsPage />} />
+        <Route path="refund-policy" element={<RefundPolicyPage />} />
+        <Route path="accessibility" element={<AccessibilityPage />} />
+        <Route path="accessibility-statement" element={<AccessibilityPage />} />
         <Route path="admin" element={<AdminPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

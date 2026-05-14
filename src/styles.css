@@ -363,3 +363,63 @@ textarea.input-base {
   padding: 10px 12px;
   line-height: 1.5;
 }
+
+/* Long-form prose styling for legal pages (privacy, terms, refund). */
+.legal-prose {
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.legal-prose h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+.legal-prose h2:first-child {
+  margin-top: 0;
+}
+.legal-prose h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.legal-prose p {
+  margin-bottom: 1rem;
+  color: var(--muted-foreground);
+}
+.legal-prose p strong {
+  color: var(--foreground);
+}
+.legal-prose ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--muted-foreground);
+}
+.legal-prose ul li {
+  margin-bottom: 0.4rem;
+}
+.legal-prose a {
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-underline-offset: 3px;
+}
+.legal-prose a:hover {
+  color: var(--gold);
+}
+.legal-prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: var(--gold-subtle);
+  border: 1px solid var(--gold-tint);
+  color: var(--navy);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
