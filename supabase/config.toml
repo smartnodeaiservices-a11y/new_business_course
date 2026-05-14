@@ -1,1 +1,18 @@
 project_id = "bvnctbppvckwbeylgazq"
+
+# Functions that are called from the browser with the new sb_publishable_* key
+# format must skip JWT verification at the gateway — the new key isn't a JWT,
+# and each function does its own input validation. Only set this to false for
+# functions that are safe to call from any origin.
+
+[functions.push-to-ghl]
+verify_jwt = false
+
+[functions.claim-referral]
+verify_jwt = false
+
+[functions.record-referral]
+verify_jwt = false
+
+[functions.affiliate-intro]
+verify_jwt = false

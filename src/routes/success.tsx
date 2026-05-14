@@ -5,6 +5,7 @@ import { readLead, clearLead } from "@/lib/lead";
 import { usePageMeta } from "@/lib/page-meta";
 import { useEffect, useState } from "react";
 import { clearReferralCode, readReferralCode, recordConversion } from "@/lib/referral";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SuccessPage() {
   usePageMeta({ title: "You're enrolled — New Business Course" });
@@ -40,6 +41,38 @@ export default function SuccessPage() {
       cancelled = true;
     };
   }, [sessionId]);
+
+  // GHL sync — fire when /success loads. We trust the upstream Stripe redirect
+  // (no server-side verification needed here) and just push the saved lead +
+  // Stripe session id to GHL. Idempotent: the function won't create a second
+  // opportunity if the email is already in the pipeline; it'll just upsert
+  // the contact and mark paid_at in supabase.
+  useEffect(() => {
+    if (!lead?.email) return;
+    let cancelled = false;
+    supabase.functions
+      .invoke("push-to-ghl", {
+        body: {
+          email: lead.email,
+          name: lead.name,
+          phone: lead.phone,
+          status: "paid",
+          source: "checkout",
+          stripeSessionId: sessionId ?? null,
+          extraTags: ["paid", ...(sessionId ? [] : ["no-session-id"])],
+        },
+      })
+      .then(({ error }) => {
+        if (cancelled) return;
+        if (error) console.warn("[ghl] sync failed:", error.message);
+      })
+      .catch((err) => {
+        if (!cancelled) console.warn("[ghl] sync failed:", err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lead?.email, lead?.name, lead?.phone, sessionId]);
 
   useEffect(() => {
     // Free the lead from session storage once they've completed the flow.

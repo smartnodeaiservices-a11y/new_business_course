@@ -47,6 +47,11 @@ export function clearLead(): void {
 /**
  * Best-effort insert into the leads table. Never throws — if Supabase
  * is unreachable or the lead already exists, we just continue.
+ *
+ * Also fires the GHL push (contact upsert + opportunity in the "New Lead"
+ * stage) so the lead lands in the CRM the moment they share an email.
+ * The Edge Function is idempotent — repeat calls for the same email
+ * update the contact but don't create duplicate opportunities.
  */
 export async function persistLeadToSupabase(
   lead: Lead,
@@ -68,6 +73,25 @@ export async function persistLeadToSupabase(
     }
   } catch (err) {
     console.warn("[lead] persist skipped:", err);
+  }
+
+  // Mirror to GHL — fire-and-forget. The Edge Function dedupes server-side.
+  try {
+    await supabase.functions.invoke("push-to-ghl", {
+      body: {
+        email: lead.email.trim(),
+        name: lead.name.trim(),
+        phone: lead.phone.trim() || null,
+        source: extra.source ?? "intake",
+        status: "new",
+        extraTags: [
+          ...(extra.source ? [`source:${extra.source}`] : []),
+          ...(extra.segment ? [`segment:${extra.segment}`] : []),
+        ],
+      },
+    });
+  } catch (err) {
+    console.warn("[ghl] push skipped:", err);
   }
 }
 
