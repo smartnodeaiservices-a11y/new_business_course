@@ -19,10 +19,15 @@ import {
   CATEGORY_LABEL,
   LEVEL_LABEL,
 } from "@/integrations/supabase/courses";
+import { motion } from "motion/react";
 import { CourseThumbnail } from "@/components/CourseThumbnail";
 import { VideoEmbed } from "@/components/VideoEmbed";
 import { BuyCourseButton } from "@/components/BuyCourseButton";
-import { handoutUrlForCourse } from "@/lib/curriculum";
+import {
+  handoutUrlForCourse,
+  HERO_VSL_VIDEO_URL,
+  HERO_VSL_POSTER_URL,
+} from "@/lib/curriculum";
 import { usePageMeta } from "@/lib/page-meta";
 
 const INCLUDES = [
@@ -186,19 +191,34 @@ export default function CourseDetailPage() {
         </div>
       </section>
 
-      {/* Preview video */}
+      {/* Preview video — smooth scale-in entrance, autoplaying local VSL */}
       <section className="max-w-[1100px] mx-auto px-6 md:px-10 pt-16">
-        <div className="max-w-2xl mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-2xl mb-8"
+        >
           <p className="eyebrow mb-3">Course Preview</p>
           <h2 className="mb-3">Watch a quick walkthrough.</h2>
           <p className="text-[15px] text-muted-foreground leading-relaxed">
             See how the course is structured and what you'll learn before you enroll.
           </p>
-        </div>
-        <VideoEmbed
-          fileId="1Qq-80kexYciCPY3kiTOTaogqKGuxWB69"
-          title={`${course.title} — Preview`}
-        />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 24 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+        >
+          <VideoEmbed
+            src={HERO_VSL_VIDEO_URL}
+            poster={HERO_VSL_POSTER_URL}
+            title={`${course.title} — Preview`}
+            vsl
+          />
+        </motion.div>
       </section>
 
       {/* Outcomes */}

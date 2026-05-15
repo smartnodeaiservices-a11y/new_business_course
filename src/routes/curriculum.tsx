@@ -115,7 +115,7 @@ export default function CurriculumPage() {
                     <div className="mt-3 flex items-center gap-4 text-[11.5px] text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
                         <PlayCircle size={12} />
-                        Video lesson
+                        Preview
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <FileText size={12} />
