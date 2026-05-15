@@ -1,13 +1,17 @@
 import { motion } from "motion/react";
 import { ArrowRight, Award, Check, Quote, Shield, Star } from "lucide-react";
 import { VideoEmbed } from "@/components/VideoEmbed";
+import { HERO_VSL_VIDEO_URL, HERO_VSL_POSTER_URL } from "@/lib/curriculum";
 import { LandingLeadForm } from "@/components/LandingLeadForm";
 import {
+  AsSeenOnSection,
+  CaseStudiesSection,
   CurriculumSection,
   FaqSection,
   FinalCtaSection,
   GuaranteeSection,
   InstructorSection,
+  ModulesAndHandoutsSection,
   OutcomesSection,
 } from "@/components/LandingSections";
 import { usePageMeta } from "@/lib/page-meta";
@@ -15,7 +19,6 @@ import { usePageMeta } from "@/lib/page-meta";
 const VARIANT = "lp-v4";
 const COURSE = "foundations-playbook";
 const PRICE = "$149";
-const VIDEO_ID = "1Qq-80kexYciCPY3kiTOTaogqKGuxWB69";
 
 const CREDENTIALS = [
   { label: "Years practicing", value: "20+" },
@@ -93,12 +96,6 @@ export default function LandingV4() {
                   Enroll · {PRICE}
                   <ArrowRight size={17} />
                 </a>
-                <a
-                  href="#video"
-                  className="btn-outline hover:btn-outline-hover min-h-[54px]! px-8! text-[15px]!"
-                >
-                  Watch intro · 2 min
-                </a>
               </div>
               <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
                 <Shield size={14} className="text-gold" />
@@ -110,18 +107,28 @@ export default function LandingV4() {
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.15, duration: 0.5 }}
-              className="grid grid-cols-2 gap-3"
             >
-              {CREDENTIALS.map((c) => (
-                <div key={c.label} className="card-base p-6 text-center">
-                  <p className="text-[34px] font-bold text-navy tabular-nums leading-none mb-1">
-                    {c.value}
-                  </p>
-                  <p className="text-[11.5px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    {c.label}
-                  </p>
-                </div>
-              ))}
+              <VideoEmbed
+                src={HERO_VSL_VIDEO_URL}
+                poster={HERO_VSL_POSTER_URL}
+                title="Foundations Playbook — Intro"
+                vsl
+              />
+              <div className="mt-4 grid grid-cols-4 gap-2">
+                {CREDENTIALS.map((c) => (
+                  <div
+                    key={c.label}
+                    className="card-base px-2 py-3 text-center bg-white"
+                  >
+                    <p className="text-[18px] font-bold text-navy tabular-nums leading-none mb-1">
+                      {c.value}
+                    </p>
+                    <p className="text-[9.5px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {c.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </motion.div>
           </div>
         </div>
@@ -157,14 +164,13 @@ export default function LandingV4() {
         </div>
       </section>
 
-      {/* Video + form */}
+      {/* The approach + lead form */}
       <section id="video" className="max-w-[1100px] mx-auto px-6 md:px-10 py-16">
         <div className="grid lg:grid-cols-[1.3fr_1fr] gap-10 items-start">
           <div>
-            <p className="eyebrow mb-3">Hear it from the source</p>
-            <h2 className="text-[28px]! mb-5">2 minutes. The whole approach.</h2>
-            <VideoEmbed fileId={VIDEO_ID} title="Foundations Playbook — Intro" />
-            <ul className="mt-6 space-y-2.5">
+            <p className="eyebrow mb-3">The whole approach</p>
+            <h2 className="text-[28px]! mb-5">What's actually in the course.</h2>
+            <ul className="space-y-2.5">
               {[
                 "Built from real client work — not theory or recycled blog posts",
                 "Every module ends with a step-by-step CPA handout",
@@ -192,8 +198,11 @@ export default function LandingV4() {
       </section>
 
       <InstructorSection />
-      <CurriculumSection tone="warm" />
+      <AsSeenOnSection tone="navy" seed={44} />
+      <CurriculumSection tone="light" />
+      <ModulesAndHandoutsSection tone="warm" />
       <OutcomesSection tone="light" />
+      <CaseStudiesSection tone="warm" />
       <GuaranteeSection />
       <FaqSection />
       <FinalCtaSection

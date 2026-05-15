@@ -9,6 +9,8 @@ import {
   Users,
   Shield,
   Download,
+  ExternalLink,
+  FileText,
   Infinity as InfinityIcon,
 } from "lucide-react";
 import {
@@ -20,6 +22,7 @@ import {
 import { CourseThumbnail } from "@/components/CourseThumbnail";
 import { VideoEmbed } from "@/components/VideoEmbed";
 import { BuyCourseButton } from "@/components/BuyCourseButton";
+import { handoutUrlForCourse } from "@/lib/curriculum";
 import { usePageMeta } from "@/lib/page-meta";
 
 const INCLUDES = [
@@ -70,6 +73,7 @@ export default function CourseDetailPage() {
   }
 
   const totalMinutes = course.modules.reduce((s, m) => s + (m.duration_min ?? 0), 0);
+  const handoutUrl = handoutUrlForCourse(course.slug);
 
   return (
     <article>
@@ -271,6 +275,62 @@ export default function CourseDetailPage() {
           ) : (
             <p className="text-[14px] text-muted-foreground italic">Curriculum coming soon.</p>
           )}
+        </div>
+      </section>
+
+      {/* Free handout — anyone can view/download without enrolling */}
+      <section className="bg-white">
+        <div className="max-w-[1100px] mx-auto px-6 md:px-10 py-16">
+          <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start">
+            <div>
+              <p className="eyebrow mb-3">Free preview</p>
+              <h2 className="mb-3">Download the course handout — free.</h2>
+              <p className="text-[15px] text-muted-foreground leading-relaxed mb-2">
+                Get a feel for how this course is built before you enroll. The handout is
+                the same PDF companion enrolled students download — checklists, templates,
+                and the partner stack we use ourselves.
+              </p>
+              <p className="text-[13.5px] text-muted-foreground leading-relaxed">
+                No email required. No paywall. View it in Drive or save a copy.
+              </p>
+            </div>
+            <div className="card-base p-5 md:p-6 bg-gold-subtle border-gold-tint">
+              <div className="flex items-start gap-4 mb-5">
+                <div className="w-11 h-11 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center shrink-0">
+                  <FileText size={20} className="text-gold" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-bold tracking-[0.12em] uppercase text-gold mb-1">
+                    Free · PDF
+                  </p>
+                  <h4 className="mb-1">{course.title} — Handout</h4>
+                  <p className="text-[13px] text-muted-foreground leading-relaxed m-0!">
+                    Opens in Google Drive. View in your browser or download to keep.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2.5">
+                <a
+                  href={handoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-gold hover:btn-gold-hover flex-1 justify-center"
+                >
+                  <Download size={16} />
+                  View / Download
+                </a>
+                <a
+                  href={handoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-outline hover:btn-outline-hover flex-1 justify-center"
+                >
+                  Open in Drive
+                  <ExternalLink size={14} />
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

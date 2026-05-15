@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Raw video sources — only the compressed `intro.mp4` + poster should be tracked.
+public/videos/VSL*.mp4
+public/videos/*-source.mp4
+
 # Env files — never commit
 .env
 .env.local

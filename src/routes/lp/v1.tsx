@@ -2,12 +2,16 @@ import { motion } from "motion/react";
 import { ArrowRight, Award, Check, Shield, Star } from "lucide-react";
 import { VideoEmbed } from "@/components/VideoEmbed";
 import { LandingLeadForm } from "@/components/LandingLeadForm";
+import { HERO_VSL_VIDEO_URL, HERO_VSL_POSTER_URL } from "@/lib/curriculum";
 import {
+  AsSeenOnSection,
+  CaseStudiesSection,
   CurriculumSection,
   FaqSection,
   FinalCtaSection,
   GuaranteeSection,
   InstructorSection,
+  ModulesAndHandoutsSection,
   TestimonialsSection,
 } from "@/components/LandingSections";
 import { usePageMeta } from "@/lib/page-meta";
@@ -15,7 +19,6 @@ import { usePageMeta } from "@/lib/page-meta";
 const VARIANT = "lp-v1";
 const COURSE = "foundations-playbook";
 const PRICE = "$149";
-const VIDEO_ID = "1Qq-80kexYciCPY3kiTOTaogqKGuxWB69";
 
 const PROOF = [
   "Pick the right entity for your situation (LLC vs. S-Corp vs. C-Corp)",
@@ -62,7 +65,12 @@ export default function LandingV1() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.6 }}
           >
-            <VideoEmbed fileId={VIDEO_ID} title="Foundations Playbook — Intro" />
+            <VideoEmbed
+              src={HERO_VSL_VIDEO_URL}
+              poster={HERO_VSL_POSTER_URL}
+              title="Foundations Playbook — Intro"
+              vsl
+            />
           </motion.div>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -153,8 +161,11 @@ export default function LandingV1() {
         </div>
       </section>
 
-      <CurriculumSection tone="warm" />
-      <TestimonialsSection tone="light" />
+      <AsSeenOnSection tone="navy" seed={11} />
+      <CurriculumSection tone="light" />
+      <ModulesAndHandoutsSection tone="warm" />
+      <CaseStudiesSection tone="light" />
+      <TestimonialsSection tone="warm" />
       <InstructorSection />
       <GuaranteeSection />
       <FaqSection />

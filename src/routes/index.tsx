@@ -23,6 +23,7 @@ import {
 import { CourseThumbnail } from "@/components/CourseThumbnail";
 import { VideoEmbed } from "@/components/VideoEmbed";
 import { BuyCourseButton } from "@/components/BuyCourseButton";
+import { AsSeenOnSection, CaseStudiesSection } from "@/components/LandingSections";
 import {
   listCourses,
   formatPrice,
@@ -453,7 +454,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* === Intro video === */}
+      {/* === As seen on === */}
+      <AsSeenOnSection tone="navy" seed={7} />
+
+      {/* === Intro video (VSL — autoplays muted, no controls) === */}
       <section className="max-w-[1100px] mx-auto px-6 md:px-10 py-20 md:py-24">
         <motion.div {...fadeUp} className="text-center max-w-2xl mx-auto mb-10">
           <p className="eyebrow mb-3">Watch The Intro</p>
@@ -467,6 +471,7 @@ export default function HomePage() {
           <VideoEmbed
             fileId="1Qq-80kexYciCPY3kiTOTaogqKGuxWB69"
             title="New Business Course — Intro"
+            vsl
           />
         </motion.div>
       </section>
@@ -749,6 +754,9 @@ export default function HomePage() {
           ))}
         </motion.div>
       </section>
+
+      {/* === Case studies === */}
+      <CaseStudiesSection tone="warm" />
 
       {/* === Instructor === */}
       <section className="bg-navy text-white">

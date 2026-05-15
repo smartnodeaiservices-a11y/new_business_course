@@ -1,12 +1,16 @@
 import { motion } from "motion/react";
 import { AlertTriangle, ArrowRight, Check, Shield, X } from "lucide-react";
 import { VideoEmbed } from "@/components/VideoEmbed";
+import { HERO_VSL_VIDEO_URL, HERO_VSL_POSTER_URL } from "@/lib/curriculum";
 import { LandingLeadForm } from "@/components/LandingLeadForm";
 import {
+  AsSeenOnSection,
+  CaseStudiesSection,
   CurriculumSection,
   FaqSection,
   FinalCtaSection,
   GuaranteeSection,
+  ModulesAndHandoutsSection,
   OutcomesSection,
   TestimonialsSection,
 } from "@/components/LandingSections";
@@ -15,7 +19,6 @@ import { usePageMeta } from "@/lib/page-meta";
 const VARIANT = "lp-v2";
 const COURSE = "foundations-playbook";
 const PRICE = "$149";
-const VIDEO_ID = "1Qq-80kexYciCPY3kiTOTaogqKGuxWB69";
 
 const MISTAKES = [
   {
@@ -49,14 +52,14 @@ export default function LandingV2() {
 
   return (
     <>
-      {/* Hero — confront the cost */}
+      {/* Hero — VSL above the fold, then the pain pitch */}
       <section className="relative overflow-hidden bg-linear-to-b from-warm-white to-white">
-        <div className="max-w-[1100px] mx-auto px-6 md:px-10 pt-12 md:pt-16 pb-12">
+        <div className="max-w-[1100px] mx-auto px-6 md:px-10 pt-10 md:pt-14 pb-12">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="max-w-3xl"
+            className="text-center max-w-3xl mx-auto mb-8"
           >
             <span className="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full bg-red-50 border border-red-100 text-red-700 text-[12px] font-semibold uppercase tracking-[0.08em]">
               <AlertTriangle size={13} />
@@ -70,30 +73,38 @@ export default function LandingV2() {
               </span>{" "}
               last year?
             </h1>
-            <p className="text-[18px] text-muted-foreground leading-relaxed mb-8 max-w-2xl">
-              If you've been in business under 24 months, the answer is almost certainly
-              "a lot." The Foundations Playbook walks you through every fix — for a
+            <p className="text-[18px] text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+              Press play. The 2-minute walkthrough shows every fix — yours for a
               one-time <strong className="text-navy">{PRICE}</strong>.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 mb-3">
-              <a
-                href={`/enroll?course=${COURSE}&utm_source=${VARIANT}&variant=${VARIANT}`}
-                className="btn-gold hover:btn-gold-hover min-h-[54px]! px-8! text-[15px]!"
-              >
-                Fix it for {PRICE}
-                <ArrowRight size={17} />
-              </a>
-              <a
-                href="#video"
-                className="btn-outline hover:btn-outline-hover min-h-[54px]! px-8! text-[15px]!"
-              >
-                Watch the 2-min intro
-              </a>
-            </div>
-            <p className="text-[12.5px] text-muted-foreground">
-              30-day money-back guarantee · Find $2K+ in savings or full refund.
-            </p>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.6 }}
+          >
+            <VideoEmbed
+              src={HERO_VSL_VIDEO_URL}
+              poster={HERO_VSL_POSTER_URL}
+              title="Foundations Playbook — Intro"
+              vsl
+            />
+          </motion.div>
+
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a
+              href={`/enroll?course=${COURSE}&utm_source=${VARIANT}&variant=${VARIANT}`}
+              className="btn-gold hover:btn-gold-hover min-h-[54px]! px-8! text-[15px]!"
+            >
+              Fix it for {PRICE}
+              <ArrowRight size={17} />
+            </a>
+            <span className="text-[13px] text-muted-foreground inline-flex items-center gap-1.5">
+              <Shield size={14} className="text-gold" />
+              30-day refund · Find $2K+ in savings or full refund.
+            </span>
+          </div>
         </div>
       </section>
 
@@ -133,14 +144,13 @@ export default function LandingV2() {
         </div>
       </section>
 
-      {/* Video + offer */}
+      {/* Offer + lead form */}
       <section id="video" className="max-w-[1100px] mx-auto px-6 md:px-10 py-16 md:py-20">
         <div className="grid lg:grid-cols-[1.4fr_1fr] gap-10 items-start">
           <div>
-            <p className="eyebrow mb-3">Watch the 2-min intro</p>
+            <p className="eyebrow mb-3">What you'll fix</p>
             <h2 className="text-[28px]! mb-5">See exactly what we fix.</h2>
-            <VideoEmbed fileId={VIDEO_ID} title="Foundations Playbook — Intro" />
-            <ul className="mt-6 space-y-2.5">
+            <ul className="space-y-2.5">
               {[
                 "Right entity, right election — no more SE tax bleed",
                 "Quarterly estimates done once, automated forever",
@@ -173,9 +183,12 @@ export default function LandingV2() {
         </div>
       </section>
 
-      <CurriculumSection tone="warm" />
+      <AsSeenOnSection tone="navy" seed={22} />
+      <CurriculumSection tone="light" />
+      <ModulesAndHandoutsSection tone="warm" />
       <OutcomesSection tone="light" />
-      <TestimonialsSection tone="warm" />
+      <CaseStudiesSection tone="warm" />
+      <TestimonialsSection tone="light" />
       <GuaranteeSection />
       <FaqSection />
       <FinalCtaSection

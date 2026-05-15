@@ -1,11 +1,19 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 
-const links: ReadonlyArray<{ to: string; label: string; end?: boolean }> = [
-  { to: "/", label: "Home", end: true },
+type NavItem = {
+  to: string;
+  label: string;
+  end?: boolean;
+  /** Extra path prefixes that should also light this link up as active. */
+  alsoActiveOn?: string[];
+};
+
+const links: ReadonlyArray<NavItem> = [
+  { to: "/", label: "Home", end: true, alsoActiveOn: ["/lp/"] },
   { to: "/curriculum", label: "Curriculum" },
   { to: "/cpa-consultation", label: "CPA Call" },
   { to: "/refer", label: "Refer & Earn" },
@@ -15,38 +23,48 @@ const links: ReadonlyArray<{ to: string; label: string; end?: boolean }> = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  const matchesAlso = (l: NavItem) =>
+    l.alsoActiveOn?.some((p) => pathname.startsWith(p)) ?? false;
   return (
     <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-border">
       <div className="max-w-[1200px] mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
         <Logo />
         <nav className="hidden md:flex items-center gap-8">
-          {links.map((l) => (
+          {links.map((l) => {
+            const forceActive = matchesAlso(l);
+            return (
             <NavLink
               key={l.to}
               to={l.to}
               end={l.end}
-              className={({ isActive }) =>
-                `relative text-[14px] transition-colors ${
-                  isActive
+              className={({ isActive }) => {
+                const active = isActive || forceActive;
+                return `relative text-[14px] transition-colors ${
+                  active
                     ? "text-navy font-semibold"
                     : "font-medium text-muted-foreground hover:text-navy"
-                }`
-              }
+                }`;
+              }}
             >
-              {({ isActive }) => (
-                <>
-                  {l.label}
-                  {isActive && (
-                    <motion.span
-                      layoutId="nav-underline"
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gold rounded-full"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                </>
-              )}
+              {({ isActive }) => {
+                const active = isActive || forceActive;
+                return (
+                  <>
+                    {l.label}
+                    {active && (
+                      <motion.span
+                        layoutId="nav-underline"
+                        className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gold rounded-full"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </>
+                );
+              }}
             </NavLink>
-          ))}
+            );
+          })}
         </nav>
         <div className="hidden md:flex items-center gap-3">
           <Link

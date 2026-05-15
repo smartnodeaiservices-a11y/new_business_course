@@ -1,13 +1,17 @@
 import { motion } from "motion/react";
 import { ArrowRight, Check, Shield, TrendingUp } from "lucide-react";
 import { VideoEmbed } from "@/components/VideoEmbed";
+import { HERO_VSL_VIDEO_URL, HERO_VSL_POSTER_URL } from "@/lib/curriculum";
 import { LandingLeadForm } from "@/components/LandingLeadForm";
 import {
+  AsSeenOnSection,
+  CaseStudiesSection,
   CurriculumSection,
   FaqSection,
   FinalCtaSection,
   GuaranteeSection,
   InstructorSection,
+  ModulesAndHandoutsSection,
   TestimonialsSection,
 } from "@/components/LandingSections";
 import { usePageMeta } from "@/lib/page-meta";
@@ -15,7 +19,6 @@ import { usePageMeta } from "@/lib/page-meta";
 const VARIANT = "lp-v3";
 const COURSE = "foundations-playbook";
 const PRICE = "$149";
-const VIDEO_ID = "1Qq-80kexYciCPY3kiTOTaogqKGuxWB69";
 
 const MATH = [
   { line: "Average year-1 tax savings", value: "$20,400" },
@@ -109,6 +112,20 @@ export default function LandingV3() {
               </div>
             </motion.div>
 
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="max-w-3xl mx-auto mb-8"
+            >
+              <VideoEmbed
+                src={HERO_VSL_VIDEO_URL}
+                poster={HERO_VSL_POSTER_URL}
+                title="Foundations Playbook — Intro"
+                vsl
+              />
+            </motion.div>
+
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
                 href={`/enroll?course=${COURSE}&utm_source=${VARIANT}&variant=${VARIANT}`}
@@ -162,14 +179,13 @@ export default function LandingV3() {
         </div>
       </section>
 
-      {/* Video + form */}
+      {/* Where the math comes from */}
       <section className="max-w-[1100px] mx-auto px-6 md:px-10 py-16">
         <div className="grid lg:grid-cols-[1.3fr_1fr] gap-10 items-start">
           <div>
-            <p className="eyebrow mb-3">Watch the intro · 2 min</p>
-            <h2 className="text-[28px]! mb-5">See where the math comes from.</h2>
-            <VideoEmbed fileId={VIDEO_ID} title="Foundations Playbook — Intro" />
-            <ul className="mt-6 space-y-2.5">
+            <p className="eyebrow mb-3">Where the math comes from</p>
+            <h2 className="text-[28px]! mb-5">Real client outcomes — not promises.</h2>
+            <ul className="space-y-2.5">
               {[
                 "$4K–$11K saved by choosing the right entity election",
                 "$1.2K+ avoided in IRS underpayment penalties",
@@ -197,8 +213,11 @@ export default function LandingV3() {
         </div>
       </section>
 
-      <CurriculumSection tone="warm" />
-      <TestimonialsSection tone="light" />
+      <AsSeenOnSection tone="navy" seed={33} />
+      <CurriculumSection tone="light" />
+      <ModulesAndHandoutsSection tone="warm" />
+      <CaseStudiesSection tone="light" />
+      <TestimonialsSection tone="warm" />
       <InstructorSection />
       <GuaranteeSection />
       <FaqSection />

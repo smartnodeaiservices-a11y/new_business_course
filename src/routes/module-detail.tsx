@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Download, ExternalLink, FileText } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Download, ExternalLink, FileText } from "lucide-react";
 import { VideoEmbed } from "@/components/VideoEmbed";
 import { AffiliateIntroForm } from "@/components/AffiliateIntroForm";
 import {
@@ -9,6 +9,8 @@ import {
   findModuleBySlug,
   moduleNeighbors,
 } from "@/lib/curriculum";
+import { findHandoutBySlug } from "@/lib/module-handouts";
+import { downloadHandoutPdf } from "@/lib/generate-handout-pdf";
 import { usePageMeta } from "@/lib/page-meta";
 
 const fadeUp = {
@@ -44,7 +46,7 @@ export default function ModuleDetailPage() {
   }
 
   const { prev, next } = moduleNeighbors(m.slug);
-  const hasHandout = m.handoutUrl && !m.handoutUrl.startsWith("REPLACE_WITH_");
+  const handout = findHandoutBySlug(m.slug);
   const hasResources = m.resources.length > 0;
 
   return (
@@ -81,36 +83,144 @@ export default function ModuleDetailPage() {
         </div>
       </section>
 
-      {/* Handout + resources */}
+      {/* Handout preview + PDF download */}
+      {handout && (
+        <section className="bg-white">
+          <div className="max-w-[1100px] mx-auto px-6 md:px-10 py-14 md:py-16">
+            <motion.div {...fadeUp} className="flex items-start justify-between gap-6 flex-wrap mb-8">
+              <div>
+                <p className="eyebrow mb-3">The handout</p>
+                <h2 className="text-[26px]! mb-2">{handout.title}</h2>
+                <p className="text-[14.5px] text-muted-foreground leading-relaxed max-w-xl">
+                  {handout.subtitle}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  void downloadHandoutPdf(handout);
+                }}
+                className="btn-gold hover:btn-gold-hover"
+              >
+                <Download size={16} />
+                Download PDF
+              </button>
+            </motion.div>
+
+            <motion.div
+              {...fadeUp}
+              className="card-base p-6 md:p-10 bg-warm-white border-gold-tint"
+            >
+              <div className="flex items-center gap-3 mb-6 pb-5 border-b border-border">
+                <div className="w-10 h-10 rounded-lg bg-gold/15 border border-gold/40 flex items-center justify-center">
+                  <FileText size={18} className="text-gold" />
+                </div>
+                <div>
+                  <p className="text-[10.5px] font-bold tracking-[0.14em] uppercase text-gold">
+                    Handout preview · PDF
+                  </p>
+                  <p className="text-[12.5px] text-muted-foreground">
+                    Read on screen or download to keep. Free to share.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-7">
+                {handout.sections.map((section, idx) => {
+                  if (section.kind === "intro") {
+                    return (
+                      <p
+                        key={idx}
+                        className="text-[15px] text-foreground leading-relaxed"
+                      >
+                        {section.body}
+                      </p>
+                    );
+                  }
+                  if (section.kind === "notes") {
+                    return (
+                      <div key={idx}>
+                        <p className="eyebrow text-gold! mb-2">{section.title}</p>
+                        <p className="text-[14.5px] text-foreground leading-relaxed">
+                          {section.body}
+                        </p>
+                      </div>
+                    );
+                  }
+                  if (section.kind === "concepts") {
+                    return (
+                      <div key={idx}>
+                        <p className="eyebrow text-gold! mb-3">{section.title}</p>
+                        <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-4">
+                          {section.items.map((c) => (
+                            <div key={c.term}>
+                              <dt className="text-[14px] font-semibold text-navy mb-0.5">
+                                {c.term}
+                              </dt>
+                              <dd className="text-[13.5px] text-muted-foreground leading-relaxed">
+                                {c.def}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    );
+                  }
+                  // checklist or actions
+                  return (
+                    <div key={idx}>
+                      <p className="eyebrow text-gold! mb-3">{section.title}</p>
+                      <ul className="space-y-2.5">
+                        {section.items.map((item) => (
+                          <li
+                            key={item}
+                            className="flex items-start gap-3 text-[14.5px] text-foreground leading-relaxed"
+                          >
+                            <div className="w-5 h-5 rounded border-2 border-gold/50 flex items-center justify-center mt-0.5 shrink-0">
+                              <Check size={11} className="text-gold/60" strokeWidth={3} />
+                            </div>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-border flex items-center justify-between gap-4 flex-wrap">
+                <p className="text-[11.5px] text-muted-foreground">
+                  © Averkamp CPA Group — not tax advice for your specific situation.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                  void downloadHandoutPdf(handout);
+                }}
+                  className="btn-outline hover:btn-outline-hover"
+                >
+                  <Download size={14} />
+                  Download {handout.filename}.pdf
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* Resources */}
       <section className="bg-white">
-        <div className="max-w-[1100px] mx-auto px-6 md:px-10 py-14 md:py-16">
+        <div className="max-w-[1100px] mx-auto px-6 md:px-10 pb-14 md:pb-16">
           <div className="grid lg:grid-cols-[1fr_1.3fr] gap-10">
             <motion.div {...fadeUp}>
-              <p className="eyebrow mb-3">The handout</p>
+              <p className="eyebrow mb-3">More for this module</p>
               <h2 className="text-[24px]! mb-3">
-                Module {m.number} handout
+                Module {m.number} — tools & partners
               </h2>
               <p className="text-[14.5px] text-muted-foreground leading-relaxed mb-5">
-                The companion handout for this module — checklists, templates, and links
-                to the tools and partners we use. Keep it open while you work through the
-                video.
+                The partner stack we use ourselves. Some links are affiliate; some are
+                gated email intros so we can warm-hand-off the relationship.
               </p>
-              {hasHandout ? (
-                <a
-                  href={m.handoutUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-gold hover:btn-gold-hover"
-                >
-                  <Download size={16} />
-                  Open handout
-                </a>
-              ) : (
-                <div className="card-base p-4 bg-gold-subtle text-[13.5px] text-muted-foreground inline-flex items-center gap-2">
-                  <FileText size={14} className="text-gold" />
-                  Handout uploads with the next batch — check back shortly.
-                </div>
-              )}
             </motion.div>
 
             <motion.div {...fadeUp} className="space-y-4">

@@ -3,12 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, Check, Shield, Sparkles } from "lucide-react";
 import { VideoEmbed } from "@/components/VideoEmbed";
+import { HERO_VSL_VIDEO_URL, HERO_VSL_POSTER_URL } from "@/lib/curriculum";
 import {
+  AsSeenOnSection,
+  CaseStudiesSection,
   CurriculumSection,
   FaqSection,
   FinalCtaSection,
   GuaranteeSection,
   InstructorSection,
+  ModulesAndHandoutsSection,
   TestimonialsSection,
 } from "@/components/LandingSections";
 import { usePageMeta } from "@/lib/page-meta";
@@ -16,7 +20,6 @@ import { usePageMeta } from "@/lib/page-meta";
 const VARIANT = "lp-v5";
 const COURSE = "foundations-playbook";
 const PRICE = "$149";
-const VIDEO_ID = "1Qq-80kexYciCPY3kiTOTaogqKGuxWB69";
 
 type Stage = "pre-llc" | "new-owner" | "growing" | "scaling";
 
@@ -186,7 +189,7 @@ export default function LandingV5() {
                   </p>
                 </div>
                 <div>
-                  <VideoEmbed fileId={VIDEO_ID} title="Foundations Playbook — Intro" />
+                  <VideoEmbed src={HERO_VSL_VIDEO_URL} poster={HERO_VSL_POSTER_URL} title="Foundations Playbook — Intro" vsl />
                 </div>
               </div>
             </div>
@@ -198,7 +201,7 @@ export default function LandingV5() {
       {!stage && (
         <section className="max-w-[1100px] mx-auto px-6 md:px-10 py-16">
           <div className="grid lg:grid-cols-[1.3fr_1fr] gap-10 items-center">
-            <VideoEmbed fileId={VIDEO_ID} title="Foundations Playbook — Intro" />
+            <VideoEmbed src={HERO_VSL_VIDEO_URL} poster={HERO_VSL_POSTER_URL} title="Foundations Playbook — Intro" vsl />
             <div>
               <p className="eyebrow mb-3">Or skip the quiz</p>
               <h2 className="text-[26px]! mb-4">
@@ -220,7 +223,10 @@ export default function LandingV5() {
         </section>
       )}
 
-      <CurriculumSection tone="warm" />
+      <AsSeenOnSection tone="navy" seed={55} />
+      <CurriculumSection tone="light" />
+      <ModulesAndHandoutsSection tone="warm" />
+      <CaseStudiesSection tone="light" />
       <TestimonialsSection tone="light" />
       <InstructorSection />
       <GuaranteeSection />

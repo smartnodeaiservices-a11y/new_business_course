@@ -1,16 +1,18 @@
-import { useMemo } from "react";
-import LandingV1 from "./lp/v1";
-import LandingV2 from "./lp/v2";
-import LandingV3 from "./lp/v3";
-import LandingV4 from "./lp/v4";
-import LandingV5 from "./lp/v5";
+import { Navigate, useSearchParams } from "react-router-dom";
 
-const VARIANTS = [LandingV1, LandingV2, LandingV3, LandingV4, LandingV5] as const;
+const VARIANT_PATHS = ["/lp/v1", "/lp/v2", "/lp/v3", "/lp/v4", "/lp/v5"] as const;
 
+/**
+ * "/" picks a random landing variant and redirects so the URL actually shows
+ * /lp/vX. Every click of the Home link gets a fresh draw — variant is not
+ * memoized across renders. `?v=N` (1..5) pins a specific variant for testing.
+ */
 export default function RandomVariantHome() {
-  const Variant = useMemo(() => {
-    const idx = Math.floor(Math.random() * VARIANTS.length);
-    return VARIANTS[idx];
-  }, []);
-  return <Variant />;
+  const [search] = useSearchParams();
+  const pinned = search.get("v");
+  const pinnedIdx =
+    pinned && /^[1-5]$/.test(pinned) ? Number(pinned) - 1 : null;
+  const idx =
+    pinnedIdx ?? Math.floor(Math.random() * VARIANT_PATHS.length);
+  return <Navigate to={VARIANT_PATHS[idx]} replace />;
 }

@@ -73,6 +73,27 @@ export const COURSE_META = {
   moduleCount: 15,
 } as const;
 
+// Shared public Drive folder where every course's handouts live. Anyone can
+// view/download these without enrolling — surfaced as a free preview on each
+// course detail page so prospects can sample the material.
+export const COURSE_HANDOUTS_FOLDER_URL =
+  "https://drive.google.com/drive/folders/12Jas4dsv7AH2rUTXW2YqCWGz3fAclzH-";
+
+// Self-hosted hero VSL — lives in public/videos. Using a real <video> element
+// (vs. iframe embeds) is what makes autoplay, no-controls, and fast start
+// actually work. Swap by dropping a new file in public/videos and updating
+// the constant.
+export const HERO_VSL_VIDEO_URL = "/videos/intro.mp4";
+export const HERO_VSL_POSTER_URL = "/videos/intro-poster.jpg";
+
+// Optional per-course override. Keys are course slugs from the DB / catalog.
+// If a slug isn't present we fall back to COURSE_HANDOUTS_FOLDER_URL.
+export const COURSE_HANDOUTS_BY_SLUG: Record<string, string> = {};
+
+export function handoutUrlForCourse(slug: string): string {
+  return COURSE_HANDOUTS_BY_SLUG[slug] ?? COURSE_HANDOUTS_FOLDER_URL;
+}
+
 // ============================================================================
 // INTRO / OVERVIEW VIDEO (separate from the 15 modules)
 // ============================================================================

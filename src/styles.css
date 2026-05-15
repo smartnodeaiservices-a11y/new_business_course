@@ -423,3 +423,38 @@ textarea.input-base {
   padding: 1px 6px;
   border-radius: 4px;
 }
+
+/* Two-direction marquee for "As Seen On" logos. Each track duplicates its
+   children once so the loop is seamless — animation translates -50%. */
+@keyframes marquee-left {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes marquee-right {
+  from { transform: translate3d(-50%, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+.marquee {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+          mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+.marquee__track {
+  display: flex;
+  flex-shrink: 0;
+  gap: 3rem;
+  padding-right: 3rem;
+  min-width: 100%;
+  animation: marquee-left linear infinite;
+}
+.marquee__track--right {
+  animation-name: marquee-right;
+}
+.marquee:hover .marquee__track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track { animation: none; }
+}

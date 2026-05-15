@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="/favicon.ico" />
+    <link rel="shortcut icon" type="image/png" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/favicon.ico" />
     <title>New Business Course — The Business Owner Profit Playbook</title>
     <meta
       name="description"
@@ -16,6 +19,10 @@
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!-- Preload the hero VSL poster + first chunks of the video so autoplay
+         starts paint-fast. The poster shows instantly while the mp4 streams. -->
+    <link rel="preload" as="image" href="/videos/intro-poster.jpg" />
+    <link rel="preload" as="video" href="/videos/intro.mp4" type="video/mp4" />
     <!-- Typography uses the Udemy Sans system-font stack. No webfont needed; falls
          back to SF Pro Text / Segoe UI / Roboto / system-ui depending on platform. -->
   </head>
