@@ -339,7 +339,7 @@ export function ModulesAndHandoutsSection({
                     className="text-[12px] font-semibold text-navy hover:text-gold inline-flex items-center gap-1 transition-colors"
                   >
                     <PlayCircle size={13} />
-                    Watch
+                    Preview
                   </Link>
                   <span className="text-border">·</span>
                   {handout ? (
