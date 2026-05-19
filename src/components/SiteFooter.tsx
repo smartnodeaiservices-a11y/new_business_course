@@ -95,6 +95,12 @@ export function SiteFooter() {
             <Link to="/contact" className="hover:text-white/70 transition-colors">
               Contact
             </Link>
+            <Link
+              to="/admin/analytics"
+              className="hover:text-white/70 transition-colors"
+            >
+              Analytics
+            </Link>
           </div>
         </div>
       </div>

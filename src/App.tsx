@@ -16,6 +16,7 @@ import ContactPage from "@/routes/contact";
 import SuccessPage from "@/routes/success";
 import CancelPage from "@/routes/cancel";
 import AdminPage from "@/routes/admin";
+import AdminAnalyticsPage from "@/routes/admin-analytics";
 import PrivacyPage from "@/routes/privacy";
 import TermsPage from "@/routes/terms";
 import RefundPolicyPage from "@/routes/refund-policy";
@@ -95,6 +96,7 @@ export default function App() {
         <Route path="accessibility" element={<AccessibilityPage />} />
         <Route path="accessibility-statement" element={<AccessibilityPage />} />
         <Route path="admin" element={<AdminPage />} />
+        <Route path="admin/analytics" element={<AdminAnalyticsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
       <Route element={<LandingLayout />}>
